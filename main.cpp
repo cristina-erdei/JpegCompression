@@ -45,7 +45,7 @@ Mat_<uchar> compressedBlock(Mat_<uchar> block){
         }
     }
 
-    //TODO: should here be doulbe instead of float?
+    //TODO: should here be double instead of float?
     Mat_<float> A(block.rows, block.cols);
     //apply DCT
     for(int i= 0; i < block.rows; i++){
@@ -56,8 +56,7 @@ Mat_<uchar> compressedBlock(Mat_<uchar> block){
 
 }
 
-vector<Mat_<uchar>> splitIn8x8Blocks(Mat_<uchar> img){
-    vector<Mat_<uchar>> blocks;
+void computeBy8x8Blocks(Mat_<uchar> img){
 
     for(int i = 0; i < img.rows; i += 8){
         for(int j = 0; j < img.cols; j += 8){
@@ -67,11 +66,14 @@ vector<Mat_<uchar>> splitIn8x8Blocks(Mat_<uchar> img){
                     block(k,l) = img(i+k,j+l);
                 }
             }
-            blocks.push_back(block);
+            //TODO why segmentation fault?
+//            Mat_<uchar> compressed = compressedBlock(block);
+
+            //add it back to image
         }
     }
 
-    return blocks;
+    //return converted image
 }
 
 void JPEG_Compression(Mat_<Vec3b> original){
@@ -90,23 +92,12 @@ void JPEG_Compression(Mat_<Vec3b> original){
         }
     }
 
-    vector<Mat_<uchar>> Y_blocks = splitIn8x8Blocks(Y);
-    vector<Mat_<uchar>> Cr_blocks = splitIn8x8Blocks(Cr);
-    vector<Mat_<uchar>> Cb_blocks = splitIn8x8Blocks(Cb);
-
-    vector<Mat_<uchar>> Y_compressedBlocks, Cr_compressedBlocks, Cb_compressedBlocks;
-
-    for(int i = 0; i < Y_blocks.size(); i++){
-        Y_compressedBlocks.push_back(compressedBlock(Y_blocks[i]));
-        Cr_compressedBlocks.push_back(compressedBlock(Cr_blocks[i]));
-        Cb_compressedBlocks.push_back(compressedBlock(Cb_blocks[i]));
-    }
+    computeBy8x8Blocks(Y);
+    computeBy8x8Blocks(Cr);
+    computeBy8x8Blocks(Cb);
 
 
     imshow("converted", converted);
-    imshow("Y", Y);
-    imshow("Cr", Cr);
-    imshow("Cb", Cb);
     waitKey(0);
 }
 
