@@ -5,23 +5,26 @@
 using namespace cv;
 using namespace std;
 
-bool isInside(Mat img, int i, int j){
-    return i >= 0 && i < img.rows && j >= 0 && j < img.cols;
+bool isInside(Mat img, int i, int j, int iMin, int iMax, int jMin, int jMax){
+    return i >= iMin && i < iMax && j >= jMin && j < jMax;
 }
 
 double alpha(int n){
     return n == 0 ? sqrt(1.0/8.0) : sqrt(2.0/8.0);
 }
 
-double DCT(Mat_<uchar> block, int u, int v){
+//function performs the discrete cosine transformation for one position
+double DCT(Mat_<uchar> img, int u, int v, int iMin, int iMax, int jMin, int jMax){
     double exteriorSum = 0.0;
-    for(int x = 0; x < 7; x++){
+    int iSize = iMax - iMin;
+    int jSize = jMax - jMin;
+    for(int x = 0; x < iSize; x++){
         double interiorSum = 0.0;
-        for(int y = 0; y < 7; y++){
+        for(int y = 0; y < jSize; y++){
             double arg1 = (M_PI / 8.0) * (x + 1.0/2.0) * (double)u;
             double arg2 = (M_PI / 8.0) * (y + 1.0/2.0) * (double)v;
 
-            interiorSum += block(x,y) * cos(arg1) * cos(arg2);
+            interiorSum += img(x + iMin, y + jMin) * cos(arg1) * cos(arg2);
         }
         exteriorSum += interiorSum;
     }
@@ -30,55 +33,51 @@ double DCT(Mat_<uchar> block, int u, int v){
 }
 
 
-Mat_<uchar> compressedBlock(Mat_<uchar> block){
-    if(block.rows != 8 || block.cols != 8){
-        cout<<"ERROR: block has incorrect sizes.";
-        exit(1);
-    }
-
-    Mat_<uchar> compressedBlock(block.rows, block.cols);
+Mat_<uchar> compressBlock(Mat_<uchar> img, int iMin, int iMax, int jMin, int jMax){
+    Mat_<uchar> compressedBlock(img.rows, img.cols);
 
     //scaling to range -127 <-> 128
-    for(int i = 0; i < block.rows; i++){
-        for(int j = 0; j < block.cols; j++){
-            compressedBlock(i,j) = block(i,j) - 128;
+    for(int i = iMin; i < iMax; i++){
+        for(int j = jMin; j < jMax; j++){
+            compressedBlock(i,j) = img(i, j) - 128;
         }
     }
 
-    //TODO: should here be double instead of float?
-    Mat_<float> A(block.rows, block.cols);
     //apply DCT
-    for(int i= 0; i < block.rows; i++){
-        for(int j = 0; j <block.cols; j++){
-            A(i,j) = DCT(compressedBlock, i, j);
+    int iSize = iMax - iMin;
+    int jSize = jMax - jMin;
+    Mat_<float> A(iSize, jSize);
+    for(int i= iMin; i < iMax; i++){
+        for(int j = jMin; j < jMax; j++){
+            A(i,j) = DCT(compressedBlock, i - iMin, j - jMin, iMin, iMax, jMin, jMax);
         }
     }
 
+    //luminance matrix
+
+
+    return compressedBlock;
 }
 
-void computeBy8x8Blocks(Mat_<uchar> img){
+Mat_<uchar> computeByBlocks(const Mat_<uchar>& img){
+
+    Mat_<uchar> compressedImg(img.rows, img.cols);
 
     for(int i = 0; i < img.rows; i += 8){
         for(int j = 0; j < img.cols; j += 8){
-            Mat_<uchar> block(8,8);
-            for(int k = 0; k < 8; k++){
-                for(int l = 0; l < 8; l++){
-                    block(k,l) = img(i+k,j+l);
-                }
+            compressedImg = compressBlock(compressedImg, i, min(i + 8, img.rows), j, min(j + 8, img.cols));
             }
-            //TODO why segmentation fault?
-//            Mat_<uchar> compressed = compressedBlock(block);
-
-            //add it back to image
         }
-    }
-
-    //return converted image
+    return compressedImg;
 }
+
 
 void JPEG_Compression(Mat_<Vec3b> original){
     Mat_<Vec3b> converted(original.rows, original.cols);
     cvtColor(original, converted, COLOR_BGR2YCrCb);
+
+    imshow("Y Cr Cb image", converted);
+    waitKey(0);
 
     Mat_<uchar> Y(original.rows, original.cols);
     Mat_<uchar> Cr(original.rows, original.cols);
@@ -92,13 +91,11 @@ void JPEG_Compression(Mat_<Vec3b> original){
         }
     }
 
-    computeBy8x8Blocks(Y);
-    computeBy8x8Blocks(Cr);
-    computeBy8x8Blocks(Cb);
+    computeByBlocks(Y);
+    computeByBlocks(Cr);
+    computeByBlocks(Cb);
 
-
-    imshow("converted", converted);
-    waitKey(0);
+    //todo put them back together
 }
 
 
