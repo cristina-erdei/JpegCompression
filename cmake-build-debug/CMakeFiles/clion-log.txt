@@ -1,4 +1,10 @@
-/home/cristinamicula/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/193.6911.21/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/cristinamicula/Documents/Facultate/IP/project
+/home/cristinamicula/.local/share/JetBrains/Toolbox/apps/CLion/ch-1/211.7142.21/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/cristinamicula/Documents/Facultate/IP/project
+-- The CXX compiler identification is GNU 10.2.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
 -- Build type: Debug
 -- Configuration types: 
 -- A 64-bit OS detected
