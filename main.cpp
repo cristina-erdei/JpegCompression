@@ -29,6 +29,23 @@ double DCT(Mat_<int> img, int i, int j) {
     return alpha(i, 8) * alpha(j, 8) * exteriorSum;
 }
 
+vector<int> runLengthEncoding(vector<int> zigzag) {
+    vector<int> rle;
+
+    for (int i = 0; i < zigzag.size(); i++) {
+        int count = 1;
+        int j = i + 1;
+        while (j < zigzag.size() && zigzag[j] == zigzag[i]) {
+            j++;
+            count++;
+        }
+        rle.push_back(count);
+        rle.push_back(zigzag[i]);
+        i = j - 1;
+    }
+    return rle;
+}
+
 //assumes block is 8x8 matrix
 vector<int> zigzag(Mat_<int> block) {
     vector<int> zigzag;
@@ -98,23 +115,6 @@ vector<int> zigzag(Mat_<int> block) {
     return zigzag;
 }
 
-vector<int> run_length_encoding(vector<int> zigzag) {
-    vector<int> rle;
-
-    for (int i = 0; i < zigzag.size(); i++) {
-        int count = 1;
-        int j = i + 1;
-        while (j < zigzag.size() && zigzag[j] == zigzag[i]) {
-            j++;
-            count++;
-        }
-        rle.push_back(count);
-        rle.push_back(zigzag[i]);
-        i = j - 1;
-    }
-    return rle;
-}
-
 vector<int> compressBlock(Mat_<uchar> img, int iMin, int iMax, int jMin, int jMax) {
     //scaling to range -127 <-> 128
     Mat_<int> compressedBlock(8, 8);
@@ -152,9 +152,7 @@ vector<int> compressBlock(Mat_<uchar> img, int iMin, int iMax, int jMin, int jMa
     }
 
     vector<int> zz = zigzag(B);
-
-    vector<int> encoding = run_length_encoding(zz);
-
+    vector<int> encoding = runLengthEncoding(zz);
     return encoding;
 }
 
@@ -213,18 +211,7 @@ vector<int> readBinaryFile(const String &filename) {
         exit(1);
     }
 
-    int rows, cols;
-    file.read((char *) &rows, sizeof(int));
-    file.read((char *) &cols, sizeof(int));
-
-    int nrOfBlocks;
-    file.read((char *) &nrOfBlocks, sizeof(int));
-
     vector<int> data;
-    data.push_back(rows);
-    data.push_back(cols);
-    data.push_back(nrOfBlocks);
-
     int aux;
     file.read((char *) &aux, sizeof(int));
     while (!file.eof()) {
@@ -236,7 +223,7 @@ vector<int> readBinaryFile(const String &filename) {
     return data;
 }
 
-void JPEG_Compression(Mat_<Vec3b> original, const String &filename) {
+void JPEG_Compression(Mat_<Vec3b> original, const String &binaryFileName) {
     Mat_<Vec3b> padded = addPadding(std::move(original));
     Mat_<Vec3b> converted(padded.rows, padded.cols);
     cvtColor(padded, converted, COLOR_BGR2YCrCb);
@@ -262,6 +249,7 @@ void JPEG_Compression(Mat_<Vec3b> original, const String &filename) {
     int totalBlocks;
     vector<int> aux = computeByBlocks(Y, &totalBlocks);
     fileContent.push_back(totalBlocks);
+
     for (int i : aux) {
         fileContent.push_back(i);
     }
@@ -275,7 +263,7 @@ void JPEG_Compression(Mat_<Vec3b> original, const String &filename) {
     for (int i : aux) {
         fileContent.push_back(i);
     }
-    writeBinaryFile(fileContent, filename);
+    writeBinaryFile(fileContent, binaryFileName);
 }
 
 double inverse_DCT(Mat_<int> block, int x, int y) {
@@ -293,7 +281,7 @@ double inverse_DCT(Mat_<int> block, int x, int y) {
     return exteriorSum;
 }
 
-Mat_<int> reverseZigZag(vector<int> data) {
+Mat_<int> reverseZigzag(vector<int> data) {
     Mat_<int> block(8, 8);
     block.setTo(0);
     block(0, 0) = data[0];
@@ -364,8 +352,7 @@ Mat_<uchar> reconstructBlock(vector<int> data, int start, int end) {
     for (int i = start; i < end; i++) {
         aux.push_back(data[i]);
     }
-
-    block = reverseZigZag(aux);
+    block = reverseZigzag(aux);
 
     //luminance matrix
     int values[64] = {
@@ -432,13 +419,18 @@ reconstructMatrix(const vector<int> &data, int rows, int cols, int nrOfBlocks) {
     return matrix;
 }
 
-void JPEG_Decompression(const String &filename) {
-    vector<int> data = readBinaryFile(filename);
+
+//flag = true - decode rle + complete zig zag
+//flag = false - decode partial zig zag
+void JPEG_Decompression(const String &binaryFilename, String outputFilename) {
+    vector<int> data = readBinaryFile(binaryFilename);
     int rows = data[0];
     int cols = data[1];
     int nrOfBlocks = data[2];
     vector<int> zz[3];
+
     int index = 3;
+    //rle decoding
     for (int nr = 0; nr < 3; nr++) {
         for (int block = 0; block < nrOfBlocks; block++) {
             int sum = 0;
@@ -476,6 +468,8 @@ void JPEG_Decompression(const String &filename) {
 
     imshow("compressed final image", final);
     waitKey(0);
+
+    imwrite(outputFilename, final);
 }
 
 double calculateCompressionRatio(const String &initialImage, const String &compressedImage) {
@@ -491,15 +485,19 @@ double calculateCompressionRatio(const String &initialImage, const String &compr
 }
 
 int main(int argc, char *argv[]) {
-    Mat_<Vec3b> image = imread(argv[1]);
+    String inputFilename = argv[1];
+    String outputFilename = argv[2];
+    String binaryFilename = argv[3];
+
+    Mat_<Vec3b> image = imread(inputFilename);
 
     imshow("original", image);
     waitKey(0);
 
-    JPEG_Compression(image, argv[2]);
-    double ratio = calculateCompressionRatio(argv[1], argv[2]);
+    JPEG_Compression(image, binaryFilename);
+    double ratio = calculateCompressionRatio(inputFilename, outputFilename);
     cout << " Compression ratio: " << ratio << endl;
-    JPEG_Decompression(argv[2]);
+    JPEG_Decompression(binaryFilename, outputFilename);
 
     return 0;
 
