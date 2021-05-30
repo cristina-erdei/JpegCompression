@@ -419,10 +419,7 @@ reconstructMatrix(const vector<int> &data, int rows, int cols, int nrOfBlocks) {
     return matrix;
 }
 
-
-//flag = true - decode rle + complete zig zag
-//flag = false - decode partial zig zag
-void JPEG_Decompression(const String &binaryFilename, String outputFilename) {
+void JPEG_Decompression(const String &binaryFilename, const String& outputFilename) {
     vector<int> data = readBinaryFile(binaryFilename);
     int rows = data[0];
     int cols = data[1];
