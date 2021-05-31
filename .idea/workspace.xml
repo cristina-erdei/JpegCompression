@@ -63,11 +63,6 @@
     </key>
   </component>
   <component name="RunManager" selected="CMake Application.main_objects">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="main_flowers" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="$PROJECT_DIR$/images/flowers_24bits.bmp flowers_jpg.jpg tempBinaryF" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="project" TARGET_NAME="main" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="project" RUN_TARGET_NAME="main">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -115,7 +110,7 @@
       <workItem from="1619435553753" duration="2413000" />
       <workItem from="1619774435574" duration="46000" />
       <workItem from="1622301434960" duration="2256000" />
-      <workItem from="1622307190544" duration="39333000" />
+      <workItem from="1622307190544" duration="41219000" />
     </task>
     <task id="LOCAL-00001" summary="Minor changes. WIP.">
       <created>1619445553244</created>
@@ -166,7 +161,14 @@
       <option name="project" value="LOCAL" />
       <updated>1622414551619</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Added screenshots with test results.">
+      <created>1622452685239</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1622452685239</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

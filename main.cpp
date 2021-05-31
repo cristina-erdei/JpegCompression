@@ -493,9 +493,9 @@ int main(int argc, char *argv[]) {
     waitKey(0);
 
     JPEG_Compression(image, binaryFilename);
+    JPEG_Decompression(binaryFilename, outputFilename);
     double ratio = calculateCompressionRatio(inputFilename, outputFilename);
     cout << " Compression ratio: " << ratio << endl;
-    JPEG_Decompression(binaryFilename, outputFilename);
 
     return 0;
 
