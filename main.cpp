@@ -59,7 +59,6 @@ vector<int> zigzag(Mat_<int> block) {
     int count = 1;
     int upperHalfCount = block.rows * (block.rows + 1) / 2;
     int lowerHalfCount = block.rows * (block.rows - 1) / 2;
-    int lowerCount = 0;
 
     //top left half of the block
     while (count < upperHalfCount) {
@@ -475,9 +474,11 @@ double calculateCompressionRatio(const String &initialImage, const String &compr
     originalFile.seekg(0, ios::end);
     long size = originalFile.tellg();
     originalFile.seekg(0, ios::beg);
+    originalFile.close();
     compressedFile.seekg(0, ios::end);
     long size2 = compressedFile.tellg();
     compressedFile.seekg(0, ios::beg);
+    compressedFile.close();
     return (double) size / (double) size2;
 }
 
